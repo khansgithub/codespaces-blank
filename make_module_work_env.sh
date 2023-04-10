@@ -38,4 +38,13 @@ setup(
 )
 EOF
 
-pip freeze > requirements.txt
+cat << EOF > requirements.txt
+setuptools
+wheel
+rq
+redis
+EOF
+
+python3 -m venv .
+source ./bin/activate
+pip3 install -r requirements.txt

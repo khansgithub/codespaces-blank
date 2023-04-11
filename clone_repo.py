@@ -1,8 +1,10 @@
 import subprocess, os, pexpect
 
-def subprocess_run(cmd, **kwargs):
+def subprocess_run(cmd_string=None, cmd_array=None, **kwargs):
+    cmd = cmd_string.split(" ") if cmd_string else cmd_array
+    print(f"Command running: {cmd}")
     return subprocess.run(
-        cmd.split(" "),
+        cmd,
         check=True,
         stdout=subprocess.PIPE,
         **kwargs
@@ -12,37 +14,34 @@ def subprocess_run(cmd, **kwargs):
 def check_known_hosts():
     set_known_hosts = True
     try:
-        # Replace this with `subprocess_run`
         keyscan = subprocess_run(
-            "ssh-keygen -H -F main_db", check=True, stdout=subprocess.PIPE
-        ).stdout.decode("utf-8")
+            cmd_string=f"ssh-keygen -H -F {HOST}").stdout.decode("utf-8")
         if len(keyscan) > 1:
             set_known_hosts = False
-            pass
-    except Exception as err:
-        pass
+    except Exception as err: pass
 
     if set_known_hosts:
+        home = os.path.expanduser("~")
         cmds = [
-            "mkdir -p /root/.ssh",
-            "touch /root/.ssh/known_hosts",
+            f"mkdir -p {home}/.ssh",
+            f"touch {home}/.ssh/known_hosts",
             f"ssh-keyscan {HOST}"
         ]
         process = None
         for c in cmds:
             try:
                 # Replace this with `subprocess_run`
-                process = subprocess_run(c, check=True, stdout=subprocess.PIPE)
-            except subprocess.CalledProcessError as err:
-                pass
+                process = subprocess_run(cmd_string=c)
+            except subprocess.CalledProcessError as err: pass
 
         print(process)
         with open("/root/.ssh/known_hosts", 'a') as known_hosts:
             known_hosts.write(process.stdout.decode("utf-8"))
             known_hosts.write("\n")
 
-
-HOST = subprocess_run("docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' git")
+HOST = subprocess_run(
+    cmd_array= [*"docker inspect -f".split(" "), "'{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'", "git"]
+    )
 REPO = "repo"
 PORT = 3333
 CLONE_TO = "./mod/"

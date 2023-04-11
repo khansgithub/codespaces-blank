@@ -20,7 +20,9 @@ fi
 cd mod
 mkdir $1
 cd $1
+
 touch setup.py
+touch __init__.py
 
 cat << EOF > setup.py
 from setuptools import setup, find_packages

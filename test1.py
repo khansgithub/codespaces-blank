@@ -5,18 +5,13 @@ import os
 import time
 import logging
 from redis import Redis
-from rq import Queue
+from rq import Queue, Worker, Connection
 from mod.workflow1 import foo
 
-q = Queue("main", connection=Redis())
-# job = q.enqueue(f=foo, job_id='foo_123')
-# job1 = q.enqueue(f=foo, job_id='foo_123')
-
-# print(job)
-# print(job1)
-
-# time.sleep(2)
-# print(job.result)
-# print(job1.result)
-print(q.fetch_job("foobar"))
-print(q.fetch_job("foo_123"))
+r_con = Redis()
+q = Queue("main", connection=r_con)
+rq_con = Connection(r_con)
+workers = Worker.all(rq_con, queue=q)
+for w in workers:
+    import ipdb; ipdb.set_trace()
+    print(w)

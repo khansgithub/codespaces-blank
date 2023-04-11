@@ -1,0 +1,9 @@
+{
+    "id": "0123-456-789",
+    "title": "test",
+    "description": "none",
+    "state": "activating",
+    "progress": [],
+    "product": "workflow1",
+    "properties": {}
+}

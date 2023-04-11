@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 import importlib
 from fastapi import FastAPI, Request
 import uvicorn
@@ -13,6 +14,7 @@ async def lifespan(app: FastAPI):
     import_modules()
     yield
 
+PORT=3000
 logger = logging.getLogger("uvicorn")
 workflow_modules = {}
 q = Queue("main", connection=Redis())
@@ -33,21 +35,33 @@ def import_modules():
         improted_module = importlib.import_module(module_name)
         workflow_modules[module] = improted_module
 
+
 @app.post("/workflow")
-async def test(req):
+async def test(req: Request):
     req_body = await req.json()
+    print(req_body)
     workflow = req_body["product"]
+
     if workflow not in workflow_modules:
         raise Exception("Product does not exist")
+
     workflow_object = workflow_modules[workflow].Main()
-    # job_id = req_body["title"]  + "_" + workflow + "_" + uuid.uuid4
     job_id = req_body["id"]
+
     if q.fetch_job(job_id) is not None:
         raise Exception(f"Job id {job_id=} already exists")
 
-    q.enqueue(
-        f=workflow_object.Run,
+    print(q.enqueue(
+        f=workflow_object.run,
         job_id=job_id
+    ))
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=PORT,
+        reload=True
     )
 
 
